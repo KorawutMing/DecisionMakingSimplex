@@ -20,6 +20,8 @@ def solve():
     c_TM = [1.0 if c == 'M' else 0.0 for c in c_T_raw]
     A = np.array(data['A'], dtype=float)
     b_T = np.array(data['b_T'], dtype=float)
+    is_minimize = data.get('is_minimize', True) 
+    pivot_rule = data.get('pivot_rule', 'bland')
     
     # 2. Find Initial Basis (Identity Columns)
     num_rows, num_cols = A.shape
@@ -42,8 +44,14 @@ def solve():
 
     # 4. Initialize Solver and Capture Iterations
     try:
-        tableau = SimplexTableau(c_TR, c_TM, b_T, A, x, basis)
-        steps = [tableau.get_tableau_data()] # Call the correct method name
+        # Pass the extracted variables here:
+        tableau = SimplexTableau(
+            c_TR, c_TM, b_T, A, x, basis, 
+            is_minimize=is_minimize, 
+            pivot_rule=pivot_rule
+        )
+        
+        steps = [tableau.get_tableau_data()]
 
         max_iter = 50
         for _ in range(max_iter):

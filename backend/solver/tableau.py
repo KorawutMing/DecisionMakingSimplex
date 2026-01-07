@@ -9,6 +9,7 @@ class SimplexTableau:
         self.x = np.array(x, dtype=float)
         self.basis = np.array(basis, dtype=int)
         self.is_minimize = is_minimize
+        print(is_minimize)
         self.pivot_rule = pivot_rule
         
         self.num_rows, self.num_cols = self.A.shape
