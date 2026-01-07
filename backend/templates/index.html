@@ -336,8 +336,19 @@
 </head>
 <body>
     <div class="container">
+        <div style="text-align: center; margin-bottom: 20px;">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/e/ec/Tsinghua_University_Logo.svg" 
+            alt="Tsinghua University Logo" 
+            style="max-width: 180px; height: auto; display: block; margin: 0 auto;">
+        </div>
+
         <h1>Big-M Simplex Visualizer</h1>
         <p class="subtitle">Visualize the Big-M method step-by-step with enhanced clarity</p>
+
+        <div style="margin-top: -10px; margin-bottom: 30px; color: #666; font-size: 0.95em;">
+            <p>Work for: <strong>Introduction to Decision Making (70160513-0)</strong></p>
+            <p>Instructor: <strong>Prof. Hai Jiang</strong></p>
+        </div>
         
         <div class="input-mode-toggle">
             <button class="mode-btn active" onclick="switchMode('standard')">Standard Input</button>
@@ -567,31 +578,63 @@ rule: max_coeff"></textarea>
             const container = document.getElementById('results');
             container.innerHTML = '<h2>Solution Iterations</h2>';
 
-            steps.forEach((step, index) => {
+            // --- 1. PREPARE THE INITIAL TABLEAU DATA ---
+            // We parse the raw strings from original_c into R and M components
+            const initial_r_R = original_c.map(val => val.includes('M') ? 0 : parseFloat(val) || 0);
+            const initial_r_M = original_c.map(val => {
+                if (!val.includes('M')) return 0;
+                if (val === 'M') return 1;
+                if (val === '-M') return -1;
+                return parseFloat(val.replace('M', '')) || 0;
+            });
+
+            // Use Step 0 as the template for A, b, and basis
+            const step0 = steps[0];
+            
+            // Create a "Synthetic" Initial Step
+            const initialStep = {
+                label: "Initial Tableau (Pre-reduction)",
+                basis: step0.basis,
+                A: step0.A,
+                b: step0.b,
+                r_R: initial_r_R,
+                r_M: initial_r_M,
+                neg_obj_R: 0,
+                neg_obj_M: 0,
+                next_pivot: [-1, -1] // No pivot marked yet
+            };
+
+            // --- 2. COMBINE AND RENDER ---
+            const allSteps = [initialStep, ...steps];
+
+            allSteps.forEach((step, index) => {
                 const stepDiv = document.createElement('div');
                 stepDiv.className = 'step-card';
                 
+                // Define title: "Initial" for the first one, "Step 0, 1, 2..." for the rest
+                const title = index === 0 ? step.label : `Step ${index - 1}`;
+
                 const numVars = original_c.length;
                 const xValues = Array(numVars).fill(0);
-
                 step.basis.forEach((varIndex, rowIndex) => {
-                    if (varIndex < numVars) {
-                        xValues[varIndex] = step.b[rowIndex];
-                    }
+                    if (varIndex < numVars) xValues[varIndex] = step.b[rowIndex];
                 });
 
                 let tableHtml = `<table>`;
                 
+                // BFS Row
                 tableHtml += `<tr class="header-row">
                                 <td style="font-weight:bold;">x values:</td>
                                 ${xValues.map(val => `<td>${smartFormat(val)}</td>`).join('')}
                             </tr>`;
 
+                // Objective Row (formatRC handles the M strings)
                 tableHtml += `<tr class="obj-row">
                                 <td>${formatRC(step.neg_obj_R, step.neg_obj_M)}</td>
                                 ${step.r_R.map((r, i) => `<td>${formatRC(r, step.r_M[i])}</td>`).join('')}
                             </tr>`;
 
+                // Matrix Rows
                 step.A.forEach((row, i) => {
                     tableHtml += `<tr>
                                     <td class="rhs-column">${smartFormat(step.b[i])}</td>
@@ -606,10 +649,58 @@ rule: max_coeff"></textarea>
                 });
 
                 tableHtml += `</table>`;
-                stepDiv.innerHTML = `<h3>Step ${index}</h3>` + tableHtml;
+                stepDiv.innerHTML = `<h3>${title}</h3>` + tableHtml;
                 container.appendChild(stepDiv);
             });
         }
+        
+        // function renderSteps(steps, original_c) {
+        //     const container = document.getElementById('results');
+        //     container.innerHTML = '<h2>Solution Iterations</h2>';
+
+        //     steps.forEach((step, index) => {
+        //         const stepDiv = document.createElement('div');
+        //         stepDiv.className = 'step-card';
+                
+        //         const numVars = original_c.length;
+        //         const xValues = Array(numVars).fill(0);
+
+        //         step.basis.forEach((varIndex, rowIndex) => {
+        //             if (varIndex < numVars) {
+        //                 xValues[varIndex] = step.b[rowIndex];
+        //             }
+        //         });
+
+        //         let tableHtml = `<table>`;
+                
+        //         tableHtml += `<tr class="header-row">
+        //                         <td style="font-weight:bold;">x values:</td>
+        //                         ${xValues.map(val => `<td>${smartFormat(val)}</td>`).join('')}
+        //                     </tr>`;
+
+        //         tableHtml += `<tr class="obj-row">
+        //                         <td>${formatRC(step.neg_obj_R, step.neg_obj_M)}</td>
+        //                         ${step.r_R.map((r, i) => `<td>${formatRC(r, step.r_M[i])}</td>`).join('')}
+        //                     </tr>`;
+
+        //         step.A.forEach((row, i) => {
+        //             tableHtml += `<tr>
+        //                             <td class="rhs-column">${smartFormat(step.b[i])}</td>
+        //                             ${row.map((val, j) => {
+        //                                 const isPivot = (step.next_pivot[0] === i && step.next_pivot[1] === j);
+        //                                 return `<td>
+        //                                     ${smartFormat(val)}
+        //                                     ${isPivot ? '<span class="pivot-marker">★</span>' : ''}
+        //                                 </td>`;
+        //                             }).join('')}
+        //                         </tr>`;
+        //         });
+
+        //         tableHtml += `</table>`;
+        //         stepDiv.innerHTML = `<h3>Step ${index}</h3>` + tableHtml;
+        //         container.appendChild(stepDiv);
+        //     });
+        // }
     </script>
 </body>
 </html>
