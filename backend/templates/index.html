@@ -13,7 +13,7 @@
 
         body { 
             font-family: 'Inter', 'Segoe UI', -apple-system, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #6f1a8f 0%, #4e0d5f 100%);
             min-height: 100vh;
             padding: 40px 20px;
         }
@@ -29,7 +29,7 @@
 
         h1 {
             font-size: 2.5em;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #6f1a8f 0%, #4e0d5f 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
@@ -63,10 +63,10 @@
         }
 
         .mode-btn.active {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #6f1a8f 0%, #4e0d5f 100%);
             color: white;
-            border-color: #667eea;
-            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+            border-color: #6f1a8f;
+            box-shadow: 0 4px 15px rgba(111, 26, 143, 0.4);
         }
 
         .mode-btn:hover {
@@ -118,8 +118,8 @@
 
         input[type="text"]:focus, textarea:focus {
             outline: none;
-            border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+            border-color: #6f1a8f;
+            box-shadow: 0 0 0 3px rgba(111, 26, 143, 0.1);
         }
 
         .options-row {
@@ -162,12 +162,12 @@
 
         select:focus {
             outline: none;
-            border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+            border-color: #6f1a8f;
+            box-shadow: 0 0 0 3px rgba(111, 26, 143, 0.1);
         }
 
         button { 
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #6f1a8f 0%, #4e0d5f 100%);
             color: white;
             border: none;
             padding: 14px 32px;
@@ -176,13 +176,13 @@
             font-size: 1.1em;
             font-weight: 600;
             transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+            box-shadow: 0 4px 15px rgba(111, 26, 143, 0.4);
             width: 100%;
         }
 
         button:hover { 
             transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+            box-shadow: 0 6px 20px rgba(111, 26, 143, 0.6);
         }
 
         button:active {
@@ -196,7 +196,7 @@
         }
 
         .step-card { 
-            border-left: 5px solid #667eea;
+            border-left: 5px solid #6f1a8f;
             padding: 25px;
             margin-bottom: 30px;
             background: linear-gradient(to right, #f8f9fa, white);
@@ -211,7 +211,7 @@
         }
 
         .step-card h3 {
-            color: #667eea;
+            color: #6f1a8f;
             margin-bottom: 20px;
             font-size: 1.5em;
             font-weight: 600;
@@ -242,7 +242,7 @@
         }
 
         .header-row { 
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #6f1a8f 0%, #4e0d5f 100%);
             color: white;
             font-weight: 600;
             font-size: 1em;
@@ -266,7 +266,6 @@
             vertical-align: super;
             font-size: 1.3em;
             font-weight: bold;
-            animation: pulse 1.5s infinite;
         }
 
         @keyframes pulse {
@@ -279,7 +278,7 @@
             margin-bottom: 30px;
             font-size: 2em;
             font-weight: 600;
-            border-bottom: 3px solid #667eea;
+            border-bottom: 3px solid #6f1a8f;
             padding-bottom: 10px;
         }
 
@@ -497,7 +496,6 @@
                 "is_minimize": isMinimize,
                 "pivot_rule": pivotRule
             };
-            console.log(isMinimize)
 
             await solveProblem(payload, button, buttonText, c_T_val);
         }
