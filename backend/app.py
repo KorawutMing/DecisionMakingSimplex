@@ -15,9 +15,11 @@ def solve():
     data = request.get_json()
     
     # 1. Pre-processing
-    c_T_raw = data['c_T']
-    c_TR = [float(c) if c != 'M' else 0.0 for c in c_T_raw]
-    c_TM = [1.0 if c == 'M' else 0.0 for c in c_T_raw]
+    c_T_raw = [str(c).strip().replace(" ", "") for c in data['c_T']]
+
+    c_TR = [0.0 if 'M' in c else float(c) for c in c_T_raw]
+    c_TM = [1.0 if c == 'M' else (-1.0 if c == '-M' else 0.0) for c in c_T_raw]
+    
     A = np.array(data['A'], dtype=float)
     b_T = np.array(data['b_T'], dtype=float)
     is_minimize = data.get('is_minimize', True) 
