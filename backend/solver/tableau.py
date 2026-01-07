@@ -50,33 +50,31 @@ class SimplexTableau:
 
     def get_entering_variable(self):
         multiplier = 1 if self.is_minimize else -1
-        
-        # Big-M part
-        candidates_M = []
+        best_col = -1
+        # We store the 'best' as a tuple (M_val, R_val) to use lexicographical comparison
+        best_val = (0.0, 0.0) 
+
         for j in range(self.num_cols):
-            val = multiplier * self.r_M[j]
-            if self._is_negative(val):
-                candidates_M.append((j, val))
+            # Calculate the current variable's potential improvement
+            curr_M = multiplier * self.r_M[j]
+            curr_R = multiplier * self.r_R[j]
 
-        if candidates_M:
-            if self.pivot_rule == "bland":
-                return min(j for j, _ in candidates_M)
-            return min(candidates_M, key=lambda x: x[1])[0]
+            # A variable is a candidate if (M < 0) OR (M == 0 and R < 0)
+            is_candidate = self._is_negative(curr_M) or (abs(curr_M) < 1e-9 and self._is_negative(curr_R))
 
-        # Real part
-        candidates_R = []
-        for j in range(self.num_cols):
-            if abs(self.r_M[j]) < 1e-9:
-                val = multiplier * self.r_R[j]
-                if self._is_negative(val):
-                    candidates_R.append((j, val))
+            if is_candidate:
+                if self.pivot_rule == "bland":
+                    # Bland's rule: just take the first index that qualifies
+                    if best_col == -1 or j < best_col:
+                        best_col = j
+                else:
+                    # "Most Negative" rule: Compare (M, R) tuples
+                    # Python compares tuples element by element: (a, b) < (c, d)
+                    if best_col == -1 or (curr_M, curr_R) < best_val:
+                        best_val = (curr_M, curr_R)
+                        best_col = j
 
-        if candidates_R:
-            if self.pivot_rule == "bland":
-                return min(j for j, _ in candidates_R)
-            return min(candidates_R, key=lambda x: x[1])[0]
-
-        return -1
+        return best_col
 
     def iterate(self):
         if self.check_optimal():
