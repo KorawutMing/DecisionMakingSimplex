@@ -268,11 +268,6 @@
             font-weight: bold;
         }
 
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
-        }
-
         #results h2 {
             color: #2c3e50;
             margin-bottom: 30px;
@@ -346,7 +341,7 @@
         
         <div class="input-mode-toggle">
             <button class="mode-btn active" onclick="switchMode('standard')">Standard Input</button>
-            <button class="mode-btn" onclick="switchMode('tableau')">Tableau Input</button>
+            <button class="mode-btn" onclick="switchMode('string')">Standardized String</button>
         </div>
 
         <!-- Standard Input Mode -->
@@ -394,61 +389,26 @@
             </button>
         </div>
 
-        <!-- Tableau Input Mode -->
+        <!-- Standardized String Input Mode -->
         <div id="tableau-input" class="input-section hidden">
-            <h3>Problem Configuration (Tableau)</h3>
+            <h3>Problem Configuration (Standardized String)</h3>
             <div class="input-group">
-                <label>Initial Tableau Matrix A (rows separated by semicolon, values by comma):</label>
-                <textarea id="A_tableau" placeholder="e.g., 1, 2, -1, 0, 1, 0; -1, 2, 0, -1, 0, 1"></textarea>
-                <div class="hint-text">Full tableau matrix including slack/artificial variables.</div>
-            </div>
-            <div class="input-group">
-                <label>RHS Vector b<sub>T</sub> (comma separated):</label>
-                <input type="text" id="b_T_tableau" placeholder="e.g., 4, 6">
-            </div>
-            <div class="input-group">
-                <label>Objective Coefficients c<sub>T</sub> - Real part (comma separated):</label>
-                <input type="text" id="c_TR_tableau" placeholder="e.g., 2, 4, 0, 0, 0, 0">
-                <div class="hint-text">Real number coefficients of the objective function.</div>
-            </div>
-            <div class="input-group">
-                <label>Objective Coefficients c<sub>T</sub> - Big-M part (comma separated):</label>
-                <input type="text" id="c_TM_tableau" placeholder="e.g., 0, 0, 0, 0, 1, 1">
-                <div class="hint-text">Big-M coefficients (use 0 for non-artificial variables, 1 for artificial).</div>
-            </div>
-            <div class="input-group">
-                <label>Initial Basic Variables x (comma separated, 0-indexed):</label>
-                <input type="text" id="x_tableau" placeholder="e.g., 4, 5">
-                <div class="hint-text">Indices of variables currently in the basis (0 for first variable).</div>
-            </div>
-            <div class="input-group">
-                <label>Initial Basis (comma separated, 0-indexed):</label>
-                <input type="text" id="basis_tableau" placeholder="e.g., 4, 5">
-                <div class="hint-text">Column indices of basic variables (0 for first column).</div>
-            </div>
-            <div class="options-row">
-                <div class="input-group">
-                    <label>Optimization Type:</label>
-                    <div class="radio-group">
-                        <label class="radio-label">
-                            <input type="radio" name="opt_type_tableau" value="min" checked>
-                            Minimize
-                        </label>
-                        <label class="radio-label">
-                            <input type="radio" name="opt_type_tableau" value="max">
-                            Maximize
-                        </label>
-                    </div>
-                </div>
-                <div class="input-group">
-                    <label>Pivot Rule:</label>
-                    <select id="pivot_rule_tableau">
-                        <option value="bland">Bland's Rule</option>
-                        <option value="max">Maximum Coefficient</option>
-                    </select>
+                <label>Problem Specification (multi-line format):</label>
+                <textarea id="problem_string" rows="8" placeholder="c: 2, 4, 0, 0, M, M
+A: 1, 2, -1, 0, 1, 0; -1, 2, 0, -1, 0, 1
+b: 4, 6
+obj: min
+rule: max_coeff"></textarea>
+                <div class="hint-text">
+                    Format: Each line starts with a key followed by colon.<br>
+                    <strong>c:</strong> objective coefficients (use M for Big-M)<br>
+                    <strong>A:</strong> constraint matrix (rows separated by semicolons)<br>
+                    <strong>b:</strong> right-hand side values<br>
+                    <strong>obj:</strong> min or max<br>
+                    <strong>rule:</strong> bland or max_coeff
                 </div>
             </div>
-            <button onclick="solveTableauProblem()">
+            <button onclick="solveStandardizedString()">
                 <span id="buttonText2">Solve Problem</span>
             </button>
         </div>
@@ -459,18 +419,18 @@
     <script>
         function switchMode(mode) {
             const standardInput = document.getElementById('standard-input');
-            const tableauInput = document.getElementById('tableau-input');
+            const stringInput = document.getElementById('tableau-input');
             const buttons = document.querySelectorAll('.mode-btn');
             
             buttons.forEach(btn => btn.classList.remove('active'));
             
             if (mode === 'standard') {
                 standardInput.classList.remove('hidden');
-                tableauInput.classList.add('hidden');
+                stringInput.classList.add('hidden');
                 buttons[0].classList.add('active');
             } else {
                 standardInput.classList.add('hidden');
-                tableauInput.classList.remove('hidden');
+                stringInput.classList.remove('hidden');
                 buttons[1].classList.add('active');
             }
         }
@@ -500,43 +460,66 @@
             await solveProblem(payload, button, buttonText, c_T_val);
         }
 
-        async function solveTableauProblem() {
+        async function solveStandardizedString() {
             const button = document.querySelector('#tableau-input button');
             const buttonText = document.getElementById('buttonText2');
             buttonText.innerHTML = '<span class="loading"></span>';
             button.disabled = true;
 
-            const A_val = document.getElementById('A_tableau').value.split(';').map(row => 
-                row.split(',').map(s => parseFloat(s.trim()))
-            );
-            const b_T_val = document.getElementById('b_T_tableau').value.split(',').map(s => parseFloat(s.trim()));
-            const c_TR_val = document.getElementById('c_TR_tableau').value.split(',').map(s => parseFloat(s.trim()));
-            const c_TM_val = document.getElementById('c_TM_tableau').value.split(',').map(s => parseFloat(s.trim()));
-            const x_val = document.getElementById('x_tableau').value.split(',').map(s => parseInt(s.trim()));
-            const basis_val = document.getElementById('basis_tableau').value.split(',').map(s => parseInt(s.trim()));
-            const isMinimize = document.querySelector('input[name="opt_type_tableau"]:checked').value === 'min';
-            const pivotRule = document.getElementById('pivot_rule_tableau').value;
+            try {
+                const problemString = document.getElementById('problem_string').value;
+                const lines = problemString.split('\n').map(line => line.trim()).filter(line => line);
+                
+                let c_T_val = null;
+                let A_val = null;
+                let b_T_val = null;
+                let obj = 'min';
+                let rule = 'bland';
+                
+                lines.forEach(line => {
+                    const colonIndex = line.indexOf(':');
+                    if (colonIndex === -1) return;
+                    
+                    const key = line.substring(0, colonIndex).trim().toLowerCase();
+                    const value = line.substring(colonIndex + 1).trim();
+                    
+                    if (key === 'c') {
+                        c_T_val = value.split(',').map(s => s.trim());
+                    } else if (key === 'a') {
+                        A_val = value.split(';').map(row => 
+                            row.split(',').map(s => parseFloat(s.trim()))
+                        );
+                    } else if (key === 'b') {
+                        b_T_val = value.split(',').map(s => parseFloat(s.trim()));
+                    } else if (key === 'obj') {
+                        obj = value.toLowerCase();
+                    } else if (key === 'rule') {
+                        rule = value.toLowerCase().replace('_', '');
+                    }
+                });
+                
+                if (!c_T_val || !A_val || !b_T_val) {
+                    alert('Error: Missing required fields (c, A, or b)');
+                    return;
+                }
+                
+                const isMinimize = obj === 'min';
+                const pivotRule = rule === 'maxcoeff' ? 'max' : 'bland';
+                
+                const payload = { 
+                    "c_T": c_T_val, 
+                    "A": A_val, 
+                    "b_T": b_T_val,
+                    "is_minimize": isMinimize,
+                    "pivot_rule": pivotRule
+                };
 
-            const payload = { 
-                "c_TR": c_TR_val,
-                "c_TM": c_TM_val,
-                "A": A_val, 
-                "b_T": b_T_val,
-                "x": x_val,
-                "basis": basis_val,
-                "is_minimize": isMinimize,
-                "pivot_rule": pivotRule
-            };
-
-            // For tableau input, we construct c_T from c_TR and c_TM for display
-            const c_T_display = c_TR_val.map((r, i) => {
-                if (Math.abs(c_TM_val[i]) < 1e-6) return r.toString();
-                let mPart = c_TM_val[i] === 1 ? "M" : c_TM_val[i] === -1 ? "-M" : c_TM_val[i] + "M";
-                let rPart = Math.abs(r) > 1e-6 ? (r > 0 ? " + " + r : " - " + Math.abs(r)) : "";
-                return mPart + rPart;
-            });
-
-            await solveProblem(payload, button, buttonText, c_T_display);
+                await solveProblem(payload, button, buttonText, c_T_val);
+            } catch (error) {
+                alert('Error parsing input: ' + error.message);
+                buttonText.textContent = 'Solve Problem';
+                button.disabled = false;
+            }
         }
 
         async function solveProblem(payload, button, buttonText, c_T_display) {
