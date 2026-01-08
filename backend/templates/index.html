@@ -355,35 +355,32 @@
             <button class="mode-btn" onclick="switchMode('string')">Standardized String</button>
         </div>
 
-        <!-- Standard Input Mode -->
         <div id="standard-input" class="input-section">
-            <h3>Problem Configuration (Standard)</h3>
-            <div class="input-group">
-                <label>Objective Function c<sub>T</sub> (comma separated, use 'M' for Big-M):</label>
-                <input type="text" id="c_T" value="2, 4, 0, 0, M, M" placeholder="e.g., 2, 4, 0, 0, M, M">
-                <div class="hint-text">Separate coefficients with commas. Use 'M' for Big-M coefficients.</div>
+            <h3>Tableau Grid Configuration</h3>
+            
+            <div class="options-row" style="margin-bottom: 20px; background: rgba(111, 26, 143, 0.05); padding: 15px; border-radius: 10px;">
+                <div class="input-group">
+                    <label>Number of Variables (n):</label>
+                    <input type="number" id="num_vars" value="6" min="1" onchange="generateInputGrid()" style="width: 80px; padding: 8px; border-radius: 5px; border: 1px solid #ddd;">
+                </div>
+                <div class="input-group">
+                    <label>Number of Constraints (m):</label>
+                    <input type="number" id="num_cons" value="2" min="1" onchange="generateInputGrid()" style="width: 80px; padding: 8px; border-radius: 5px; border: 1px solid #ddd;">
+                </div>
             </div>
-            <div class="input-group">
-                <label>Constraint Matrix A (rows separated by semicolon, values by comma):</label>
-                <input type="text" id="A" value="1, 2, -1, 0, 1, 0; -1, 2, 0, -1, 0, 1" placeholder="e.g., 1, 2, -1, 0; 2, 1, 0, -1">
-                <div class="hint-text">Separate rows with semicolons, values within rows with commas.</div>
-            </div>
-            <div class="input-group">
-                <label>RHS Vector b<sub>T</sub> (comma separated):</label>
-                <input type="text" id="b_T" value="4, 6" placeholder="e.g., 4, 6">
-                <div class="hint-text">Right-hand side values, separated by commas.</div>
-            </div>
+
+            <div id="grid-wrapper" class="tableau-grid-container" style="overflow-x: auto; margin-bottom: 25px;">
+                </div>
+
             <div class="options-row">
                 <div class="input-group">
                     <label>Optimization Type:</label>
                     <div class="radio-group">
                         <label class="radio-label">
-                            <input type="radio" name="opt_type" value="min" checked>
-                            Minimize
+                            <input type="radio" name="opt_type" value="min" checked> Minimize
                         </label>
                         <label class="radio-label">
-                            <input type="radio" name="opt_type" value="max">
-                            Maximize
+                            <input type="radio" name="opt_type" value="max"> Maximize
                         </label>
                     </div>
                 </div>
@@ -395,9 +392,96 @@
                     </select>
                 </div>
             </div>
-            <button onclick="solveStandardProblem()">
+
+            <button onclick="solveFromGrid()">
                 <span id="buttonText1">Solve Problem</span>
             </button>
+
+            <script>
+                // Function to generate the grid that matches your renderSteps logic
+                function generateInputGrid() {
+                    const n = parseInt(document.getElementById('num_vars').value) || 0;
+                    const m = parseInt(document.getElementById('num_cons').value) || 0;
+                    const wrapper = document.getElementById('grid-wrapper');
+                    
+                    let html = `<table style="width: 100%; border-collapse: collapse;">`;
+                    
+                    // 1. Header Row (Indices)
+                    html += `<tr class="header-row">
+                        <td style="width: 100px;">Basis / RHS</td>`;
+                    for (let j = 1; j <= n; j++) {
+                        html += `<td>x<sub>${j}</sub></td>`;
+                    }
+                    html += `</tr>`;
+
+                    // 2. Objective Row (Yellow - for c coefficients)
+                    html += `<tr class="obj-row">
+                        <td style="font-size: 0.8em;">Obj Coeffs (c)</td>`;
+                    for (let j = 0; j < n; j++) {
+                        // Pre-fill with M for artificial variables based on your default example
+                        let defaultVal = (j >= n-2) ? 'M' : '0';
+                        if(j === 0) defaultVal = '2';
+                        if(j === 1) defaultVal = '4';
+                        html += `<td><input type="text" class="grid-c cell-input" value="${defaultVal}" style="width: 50px; text-align: center; border:none; background:transparent; font-weight:bold;"></td>`;
+                    }
+                    html += `</tr>`;
+
+                    // 3. Constraint Rows (A matrix and b vector)
+                    for (let i = 0; i < m; i++) {
+                        html += `<tr>
+                            <td class="rhs-column">
+                                <input type="number" class="grid-b cell-input" value="${i === 0 ? 4 : 6}" style="width: 60px; text-align: center; border:none; background:transparent; font-weight:bold;">
+                            </td>`;
+                        for (let j = 0; j < n; j++) {
+                            html += `<td>
+                                <input type="number" class="grid-a cell-input" data-row="${i}" data-col="${j}" value="0" style="width: 50px; text-align: center; border:none; background:transparent;">
+                            </td>`;
+                        }
+                        html += `</tr>`;
+                    }
+                    
+                    html += `</table>`;
+                    wrapper.innerHTML = html;
+                }
+
+                // Call initially to build the default grid
+                window.addEventListener('load', generateInputGrid);
+
+                // Modified Solve function to pull data from the grid
+                async function solveFromGrid() {
+                    const button = document.querySelector('#standard-input button');
+                    const buttonText = document.getElementById('buttonText1');
+                    buttonText.innerHTML = '<span class="loading"></span>';
+                    button.disabled = true;
+
+                    const n = parseInt(document.getElementById('num_vars').value);
+                    const m = parseInt(document.getElementById('num_cons').value);
+
+                    const c_T = Array.from(document.querySelectorAll('.grid-c')).map(input => input.value.trim());
+                    const b_T = Array.from(document.querySelectorAll('.grid-b')).map(input => parseFloat(input.value) || 0);
+                    
+                    const A = [];
+                    for (let i = 0; i < m; i++) {
+                        const row = [];
+                        for (let j = 0; j < n; j++) {
+                            const val = document.querySelector(`.grid-a[data-row="${i}"][data-col="${j}"]`).value;
+                            row.push(parseFloat(val) || 0);
+                        }
+                        A.push(row);
+                    }
+
+                    const isMinimize = document.querySelector('input[name="opt_type"]:checked').value === 'min';
+                    const pivotRule = document.getElementById('pivot_rule').value;
+
+                    const payload = { "c_T": c_T, "A": A, "b_T": b_T, "is_minimize": isMinimize, "pivot_rule": pivotRule };
+
+                    try {
+                        await solveProblem(payload, button, buttonText, c_T);
+                    } catch (err) {
+                        console.error(err);
+                    }
+                }
+            </script>
         </div>
 
         <!-- Standardized String Input Mode -->
@@ -653,54 +737,6 @@ rule: max_coeff"></textarea>
                 container.appendChild(stepDiv);
             });
         }
-        
-        // function renderSteps(steps, original_c) {
-        //     const container = document.getElementById('results');
-        //     container.innerHTML = '<h2>Solution Iterations</h2>';
-
-        //     steps.forEach((step, index) => {
-        //         const stepDiv = document.createElement('div');
-        //         stepDiv.className = 'step-card';
-                
-        //         const numVars = original_c.length;
-        //         const xValues = Array(numVars).fill(0);
-
-        //         step.basis.forEach((varIndex, rowIndex) => {
-        //             if (varIndex < numVars) {
-        //                 xValues[varIndex] = step.b[rowIndex];
-        //             }
-        //         });
-
-        //         let tableHtml = `<table>`;
-                
-        //         tableHtml += `<tr class="header-row">
-        //                         <td style="font-weight:bold;">x values:</td>
-        //                         ${xValues.map(val => `<td>${smartFormat(val)}</td>`).join('')}
-        //                     </tr>`;
-
-        //         tableHtml += `<tr class="obj-row">
-        //                         <td>${formatRC(step.neg_obj_R, step.neg_obj_M)}</td>
-        //                         ${step.r_R.map((r, i) => `<td>${formatRC(r, step.r_M[i])}</td>`).join('')}
-        //                     </tr>`;
-
-        //         step.A.forEach((row, i) => {
-        //             tableHtml += `<tr>
-        //                             <td class="rhs-column">${smartFormat(step.b[i])}</td>
-        //                             ${row.map((val, j) => {
-        //                                 const isPivot = (step.next_pivot[0] === i && step.next_pivot[1] === j);
-        //                                 return `<td>
-        //                                     ${smartFormat(val)}
-        //                                     ${isPivot ? '<span class="pivot-marker">★</span>' : ''}
-        //                                 </td>`;
-        //                             }).join('')}
-        //                         </tr>`;
-        //         });
-
-        //         tableHtml += `</table>`;
-        //         stepDiv.innerHTML = `<h3>Step ${index}</h3>` + tableHtml;
-        //         container.appendChild(stepDiv);
-        //     });
-        // }
     </script>
 </body>
 </html>
