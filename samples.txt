@@ -1,0 +1,120 @@
+Beaver Creek Pottery:
+
+Maximize
+ OBJ: 40 x1 + 50 x2 + 0 x3 + 0 x4
+Subject To
+ C1: 1 x1 + 2 x2 + 1 x3 + 0 x4 = 40
+ C2: 4 x1 + 3 x2 + 0 x3 + 1 x4 = 120
+Bounds
+ x1 >= 0
+ x2 >= 0
+ x3 >= 0
+ x4 >= 0
+End
+
+Wyndor Glass Co.:
+
+Maximize
+ OBJ: 3 x1 + 5 x2 + 0 x3 + 0 x4 + 0 x5
+Subject To
+ C1: 1 x1 + 0 x2 + 1 x3 + 0 x4 + 0 x5 = 4
+ C2: 0 x1 + 2 x2 + 0 x3 + 1 x4 + 0 x5 = 12
+ C3: 3 x1 + 2 x2 + 0 x3 + 0 x4 + 1 x5 = 18
+Bounds
+ x1 >= 0
+ x2 >= 0
+ x3 >= 0
+ x4 >= 0
+ x5 >= 0
+End
+
+HW6_1:
+
+Minimize
+ OBJ: 3 x1 + 5 x2 + 0 x3 + 0 x4 + 0 x5 + M x6 + M x7 + M x8
+Subject To
+ C1: 1 x1 + 1 x2 + 0 x3 + 0 x4 + 0 x5 + 1 x6 + 0 x7 + 0 x8 = 10
+ C2: 1 x1 + 0 x2 - 1 x3 + 0 x4 + 0 x5 + 0 x6 + 1 x7 + 0 x8 = 5
+ C3: 0 x1 + 1 x2 + 0 x3 - 1 x4 + 0 x5 + 0 x6 + 0 x7 + 1 x8 = 2
+ C4: -1 x1 + 2 x2 + 0 x3 + 0 x4 + 1 x5 + 0 x6 + 0 x7 + 0 x8 = 2
+Bounds
+ x1 >= 0
+ x2 >= 0
+ x3 >= 0
+ x4 >= 0
+ x5 >= 0
+ x6 >= 0
+ x7 >= 0
+ x8 >= 0
+End
+
+HW6_2:
+
+Minimize
+ OBJ: 2 x1 + 3 x2 + 1 x3 + 0 x4 + 0 x5 + 0 x6 + M x7 + M x8
+Subject To
+ C1: 1 x1 + 1 x2 + 2 x3 - 1 x4 + 0 x5 + 0 x6 + 1 x7 + 0 x8 = 4
+ C2: 2 x1 + 1 x2 + 1 x3 + 0 x4 - 1 x5 + 0 x6 + 0 x7 + 1 x8 = 6
+ C3: 1 x1 + 0 x2 + 1 x3 + 0 x4 + 0 x5 + 1 x6 + 0 x7 + 0 x8 = 10
+Bounds
+ x1 >= 0
+ x2 >= 0
+ x3 >= 0
+ x4 >= 0
+ x5 >= 0
+ x6 >= 0
+ x7 >= 0
+ x8 >= 0
+End
+
+HW7_1:
+
+Minimize
+ OBJ: -10 x1 - 12 x2 - 12 x3 + 0 x4 + 0 x5 + 0 x6
+Subject To
+ C1: 1 x1 + 2 x2 + 2 x3 + 1 x4 + 0 x5 + 0 x6 = 20
+ C2: 2 x1 + 1 x2 + 2 x3 + 0 x4 + 1 x5 + 0 x6 = 20
+ C3: 2 x1 + 2 x2 + 1 x3 + 0 x4 + 0 x5 + 1 x6 = 20
+Bounds
+ x1 >= 0
+ x2 >= 0
+ x3 >= 0
+ x4 >= 0
+ x5 >= 0
+ x6 >= 0
+End
+
+HW8_2:
+
+Maximize
+ OBJ: -5 x1 - 7 x2 + 0 x3 + 0 x4 - M x5 - M x6
+Subject To
+ C1: 1 x1 + 2 x2 + 0 x3 + 0 x4 + 1 x5 + 0 x6 = 1
+ C2: 2 x1 + 0 x2 + 1 x3 + 0 x4 + 0 x5 + 0 x6 = 3
+ C3: 2 x1 + 0 x2 + 0 x3 - 1 x4 + 0 x5 + 1 x6 = 1
+Bounds
+ x1 >= 0
+ x2 >= 0
+ x3 >= 0
+ x4 >= 0
+ x5 >= 0
+ x6 >= 0
+End
+
+HW13_1: # Degeneracy, starting at -z = 3
+
+Minimize
+ OBJ: -0.75 x1 + 20 x2 - 0.5 x3 + 6 x4 + 0 x5 + 0 x6 + 0 x7
+Subject To
+ C1: 0.25 x1 - 8 x2 - 1 x3 + 9 x4 + 1 x5 + 0 x6 + 0 x7 = 0
+ C2: 0.5 x1 - 12 x2 - 0.5 x3 + 3 x4 + 0 x5 + 1 x6 + 0 x7 = 0
+ C3: 0 x1 + 0 x2 + 1 x3 + 0 x4 + 0 x5 + 0 x6 + 1 x7 = 1
+Bounds
+ x1 >= 0
+ x2 >= 0
+ x3 >= 0
+ x4 >= 0
+ x5 >= 0
+ x6 >= 0
+ x7 >= 0
+End

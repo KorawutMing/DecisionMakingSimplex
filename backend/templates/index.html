@@ -48,6 +48,7 @@
             gap: 15px;
             margin-bottom: 30px;
             justify-content: center;
+            flex-wrap: wrap;
         }
 
         .mode-btn {
@@ -353,6 +354,7 @@
         <div class="input-mode-toggle">
             <button class="mode-btn active" onclick="switchMode('standard')">Standard Input</button>
             <button class="mode-btn" onclick="switchMode('string')">Standardized String</button>
+            <button class="mode-btn" onclick="switchMode('copt')">COPT LP Style</button>
         </div>
 
         <div id="standard-input" class="input-section">
@@ -370,7 +372,7 @@
             </div>
 
             <div id="grid-wrapper" class="tableau-grid-container" style="overflow-x: auto; margin-bottom: 25px;">
-                </div>
+            </div>
 
             <div class="options-row">
                 <div class="input-group">
@@ -396,92 +398,6 @@
             <button onclick="solveFromGrid()">
                 <span id="buttonText1">Solve Problem</span>
             </button>
-
-            <script>
-                // Function to generate the grid that matches your renderSteps logic
-                function generateInputGrid() {
-                    const n = parseInt(document.getElementById('num_vars').value) || 0;
-                    const m = parseInt(document.getElementById('num_cons').value) || 0;
-                    const wrapper = document.getElementById('grid-wrapper');
-                    
-                    let html = `<table style="width: 100%; border-collapse: collapse;">`;
-                    
-                    // 1. Header Row (Indices)
-                    html += `<tr class="header-row">
-                        <td style="width: 100px;">Basis / RHS</td>`;
-                    for (let j = 1; j <= n; j++) {
-                        html += `<td>x<sub>${j}</sub></td>`;
-                    }
-                    html += `</tr>`;
-
-                    // 2. Objective Row (Yellow - for c coefficients)
-                    html += `<tr class="obj-row">
-                        <td style="font-size: 0.8em;">Obj Coeffs (c)</td>`;
-                    for (let j = 0; j < n; j++) {
-                        // Pre-fill with M for artificial variables based on your default example
-                        let defaultVal = (j >= n-2) ? 'M' : '0';
-                        if(j === 0) defaultVal = '2';
-                        if(j === 1) defaultVal = '4';
-                        html += `<td><input type="text" class="grid-c cell-input" value="${defaultVal}" style="width: 50px; text-align: center; border:none; background:transparent; font-weight:bold;"></td>`;
-                    }
-                    html += `</tr>`;
-
-                    // 3. Constraint Rows (A matrix and b vector)
-                    for (let i = 0; i < m; i++) {
-                        html += `<tr>
-                            <td class="rhs-column">
-                                <input type="number" class="grid-b cell-input" value="${i === 0 ? 4 : 6}" style="width: 60px; text-align: center; border:none; background:transparent; font-weight:bold;">
-                            </td>`;
-                        for (let j = 0; j < n; j++) {
-                            html += `<td>
-                                <input type="number" class="grid-a cell-input" data-row="${i}" data-col="${j}" value="0" style="width: 50px; text-align: center; border:none; background:transparent;">
-                            </td>`;
-                        }
-                        html += `</tr>`;
-                    }
-                    
-                    html += `</table>`;
-                    wrapper.innerHTML = html;
-                }
-
-                // Call initially to build the default grid
-                window.addEventListener('load', generateInputGrid);
-
-                // Modified Solve function to pull data from the grid
-                async function solveFromGrid() {
-                    const button = document.querySelector('#standard-input button');
-                    const buttonText = document.getElementById('buttonText1');
-                    buttonText.innerHTML = '<span class="loading"></span>';
-                    button.disabled = true;
-
-                    const n = parseInt(document.getElementById('num_vars').value);
-                    const m = parseInt(document.getElementById('num_cons').value);
-
-                    const c_T = Array.from(document.querySelectorAll('.grid-c')).map(input => input.value.trim());
-                    const b_T = Array.from(document.querySelectorAll('.grid-b')).map(input => parseFloat(input.value) || 0);
-                    
-                    const A = [];
-                    for (let i = 0; i < m; i++) {
-                        const row = [];
-                        for (let j = 0; j < n; j++) {
-                            const val = document.querySelector(`.grid-a[data-row="${i}"][data-col="${j}"]`).value;
-                            row.push(parseFloat(val) || 0);
-                        }
-                        A.push(row);
-                    }
-
-                    const isMinimize = document.querySelector('input[name="opt_type"]:checked').value === 'min';
-                    const pivotRule = document.getElementById('pivot_rule').value;
-
-                    const payload = { "c_T": c_T, "A": A, "b_T": b_T, "is_minimize": isMinimize, "pivot_rule": pivotRule };
-
-                    try {
-                        await solveProblem(payload, button, buttonText, c_T);
-                    } catch (err) {
-                        console.error(err);
-                    }
-                }
-            </script>
         </div>
 
         <!-- Standardized String Input Mode -->
@@ -508,13 +424,131 @@ rule: max_coeff"></textarea>
             </button>
         </div>
 
+        <!-- COPT LP Style Input Mode -->
+        <div id="copt-input" class="input-section hidden">
+            <h3>COPT LP Format (Uses Bland's Rule)</h3>
+            <div class="input-group">
+                <label>LP Problem in COPT Format:</label>
+                <textarea id="copt_string" rows="12" placeholder="Minimize
+ OBJ: -0.75 x1 + 20 x2 - 0.5 x3 + 6 x4 + 0 x5 + 0 x6 + 0 x7
+Subject To
+ C1: 0.25 x1 - 8 x2 - 1 x3 + 9 x4 + 1 x5 + 0 x6 + 0 x7 = 0
+ C2: 0.5 x1 - 12 x2 - 0.5 x3 + 3 x4 + 0 x5 + 1 x6 + 0 x7 = 0
+ C3: 0 x1 + 0 x2 + 1 x3 + 0 x4 + 0 x5 + 0 x6 + 1 x7 = 1
+Bounds
+ x1 >= 0
+ x2 >= 0
+ x3 >= 0
+ x4 >= 0
+ x5 >= 0
+ x6 >= 0
+ x7 >= 0
+End"></textarea>
+                <div class="hint-text">
+                    <strong>Format:</strong> Standard COPT LP format<br>
+                    <strong>Reference (LP format):</strong> https://guide.coap.online/copt/en-doc/fileformats.html<br>
+                    <em>Note: This mode always uses Bland's rule to prevent cycling, and we only allow equality in the constraints</em>
+                </div>
+            </div>
+            <button onclick="solveCOPTString()">
+                <span id="buttonText3">Solve Problem</span>
+            </button>
+        </div>
+
         <div id="results"></div>
     </div>
 
     <script>
+        // Function to generate the grid that matches your renderSteps logic
+        function generateInputGrid() {
+            const n = parseInt(document.getElementById('num_vars').value) || 0;
+            const m = parseInt(document.getElementById('num_cons').value) || 0;
+            const wrapper = document.getElementById('grid-wrapper');
+            
+            let html = `<table style="width: 100%; border-collapse: collapse;">`;
+            
+            // 1. Header Row (Indices)
+            html += `<tr class="header-row">
+                <td style="width: 100px;">Basis / RHS</td>`;
+            for (let j = 1; j <= n; j++) {
+                html += `<td>x<sub>${j}</sub></td>`;
+            }
+            html += `</tr>`;
+
+            // 2. Objective Row (Yellow - for c coefficients)
+            html += `<tr class="obj-row">
+                <td style="font-size: 0.8em;">Obj Coeffs (c)</td>`;
+            for (let j = 0; j < n; j++) {
+                // Pre-fill with M for artificial variables based on your default example
+                let defaultVal = (j >= n-2) ? 'M' : '0';
+                if(j === 0) defaultVal = '2';
+                if(j === 1) defaultVal = '4';
+                html += `<td><input type="text" class="grid-c cell-input" value="${defaultVal}" style="width: 50px; text-align: center; border:none; background:transparent; font-weight:bold;"></td>`;
+            }
+            html += `</tr>`;
+
+            // 3. Constraint Rows (A matrix and b vector)
+            for (let i = 0; i < m; i++) {
+                html += `<tr>
+                    <td class="rhs-column">
+                        <input type="number" class="grid-b cell-input" value="${i === 0 ? 4 : 6}" style="width: 60px; text-align: center; border:none; background:transparent; font-weight:bold;">
+                    </td>`;
+                for (let j = 0; j < n; j++) {
+                    html += `<td>
+                        <input type="number" class="grid-a cell-input" data-row="${i}" data-col="${j}" value="0" style="width: 50px; text-align: center; border:none; background:transparent;">
+                    </td>`;
+                }
+                html += `</tr>`;
+            }
+            
+            html += `</table>`;
+            wrapper.innerHTML = html;
+        }
+
+        // Call initially to build the default grid
+        window.addEventListener('load', generateInputGrid);
+
+        // Modified Solve function to pull data from the grid
+        async function solveFromGrid() {
+            const button = document.querySelector('#standard-input button');
+            const buttonText = document.getElementById('buttonText1');
+            buttonText.innerHTML = '<span class="loading"></span>';
+            button.disabled = true;
+
+            const n = parseInt(document.getElementById('num_vars').value);
+            const m = parseInt(document.getElementById('num_cons').value);
+
+            const c_T = Array.from(document.querySelectorAll('.grid-c')).map(input => input.value.trim());
+            const b_T = Array.from(document.querySelectorAll('.grid-b')).map(input => parseFloat(input.value) || 0);
+            
+            const A = [];
+            for (let i = 0; i < m; i++) {
+                const row = [];
+                for (let j = 0; j < n; j++) {
+                    const val = document.querySelector(`.grid-a[data-row="${i}"][data-col="${j}"]`).value;
+                    row.push(parseFloat(val) || 0);
+                }
+                A.push(row);
+            }
+
+            const isMinimize = document.querySelector('input[name="opt_type"]:checked').value === 'min';
+            const pivotRule = document.getElementById('pivot_rule').value;
+
+            const payload = { "c_T": c_T, "A": A, "b_T": b_T, "is_minimize": isMinimize, "pivot_rule": pivotRule };
+
+            try {
+                await solveProblem(payload, button, buttonText, c_T);
+            } catch (err) {
+                console.error(err);
+                buttonText.textContent = 'Solve Problem';
+                button.disabled = false;
+            }
+        }
+
         function switchMode(mode) {
             const standardInput = document.getElementById('standard-input');
             const stringInput = document.getElementById('tableau-input');
+            const coptInput = document.getElementById('copt-input');
             const buttons = document.querySelectorAll('.mode-btn');
             
             buttons.forEach(btn => btn.classList.remove('active'));
@@ -522,37 +556,19 @@ rule: max_coeff"></textarea>
             if (mode === 'standard') {
                 standardInput.classList.remove('hidden');
                 stringInput.classList.add('hidden');
+                coptInput.classList.add('hidden');
                 buttons[0].classList.add('active');
-            } else {
+            } else if (mode === 'string') {
                 standardInput.classList.add('hidden');
                 stringInput.classList.remove('hidden');
+                coptInput.classList.add('hidden');
                 buttons[1].classList.add('active');
+            } else if (mode === 'copt') {
+                standardInput.classList.add('hidden');
+                stringInput.classList.add('hidden');
+                coptInput.classList.remove('hidden');
+                buttons[2].classList.add('active');
             }
-        }
-
-        async function solveStandardProblem() {
-            const button = document.querySelector('#standard-input button');
-            const buttonText = document.getElementById('buttonText1');
-            buttonText.innerHTML = '<span class="loading"></span>';
-            button.disabled = true;
-
-            const c_T_val = document.getElementById('c_T').value.split(',').map(s => s.trim());
-            const b_T_val = document.getElementById('b_T').value.split(',').map(s => parseFloat(s.trim()));
-            const A_val = document.getElementById('A').value.split(';').map(row => 
-                row.split(',').map(s => parseFloat(s.trim()))
-            );
-            const isMinimize = document.querySelector('input[name="opt_type"]:checked').value === 'min';
-            const pivotRule = document.getElementById('pivot_rule').value;
-
-            const payload = { 
-                "c_T": c_T_val, 
-                "A": A_val, 
-                "b_T": b_T_val,
-                "is_minimize": isMinimize,
-                "pivot_rule": pivotRule
-            };
-
-            await solveProblem(payload, button, buttonText, c_T_val);
         }
 
         async function solveStandardizedString() {
@@ -595,6 +611,8 @@ rule: max_coeff"></textarea>
                 
                 if (!c_T_val || !A_val || !b_T_val) {
                     alert('Error: Missing required fields (c, A, or b)');
+                    buttonText.textContent = 'Solve Problem';
+                    button.disabled = false;
                     return;
                 }
                 
@@ -612,6 +630,91 @@ rule: max_coeff"></textarea>
                 await solveProblem(payload, button, buttonText, c_T_val);
             } catch (error) {
                 alert('Error parsing input: ' + error.message);
+                buttonText.textContent = 'Solve Problem';
+                button.disabled = false;
+            }
+        }
+
+        async function solveCOPTString() {
+            const button = document.querySelector('#copt-input button');
+            const buttonText = document.getElementById('buttonText3');
+            buttonText.innerHTML = '<span class="loading"></span>';
+            button.disabled = true;
+
+            try {
+                const coptString = document.getElementById('copt_string').value;
+                const lines = coptString.split('\n').map(l => l.trim()).filter(l => l);
+                
+                let isMinimize = true;
+                let section = '';
+                let constraints = [];
+                let objectiveRaw = "";
+
+                // 1. Pre-pass: Find max variable index to size arrays correctly
+                const varMatches = coptString.match(/x(\d+)/g) || [];
+                const numVars = Math.max(...varMatches.map(m => parseInt(m.substring(1))), 0);
+
+                if (numVars === 0) throw new Error("No variables (x1, x2...) found.");
+
+                const c_T_val = Array(numVars).fill("0");
+                const b_T_val = [];
+                const A_val = [];
+
+                for (let line of lines) {
+                    let l = line.toLowerCase();
+                    if (l.startsWith('min')) { isMinimize = true; section = 'obj'; continue; }
+                    if (l.startsWith('max')) { isMinimize = false; section = 'obj'; continue; }
+                    if (l.startsWith('sub')) { section = 'cons'; continue; }
+                    if (l.startsWith('bound') || l.startsWith('end')) { section = ''; continue; }
+
+                    if (section === 'obj') {
+                        objectiveRaw += line.split(':')[1] || line;
+                    } else if (section === 'cons') {
+                        constraints.push(line);
+                    }
+                }
+
+                // 2. Parse Objective (Handles: - 0.5 x1 + x2 - M x3)
+                const termRegex = /([+-]?\s*[\d.M]*)\s*x(\d+)/g;
+                let match;
+                while ((match = termRegex.exec(objectiveRaw)) !== null) {
+                    let coeff = match[1].replace(/\s+/g, '') || "+1";
+                    if (coeff === "+") coeff = "1";
+                    if (coeff === "-") coeff = "-1";
+                    const idx = parseInt(match[2]) - 1;
+                    c_T_val[idx] = coeff;
+                }
+
+                // 3. Parse Constraints
+                for (let rowStr of constraints) {
+                    if (!rowStr.includes('=')) continue;
+                    const [lhs, rhs] = rowStr.split(':')[1].split('=');
+                    b_T_val.push(parseFloat(rhs.trim()));
+
+                    const row = Array(numVars).fill(0);
+                    while ((match = termRegex.exec(lhs)) !== null) {
+                        let coeffStr = match[1].replace(/\s+/g, '') || "+1";
+                        let val = 0;
+                        if (coeffStr === "+") val = 1;
+                        else if (coeffStr === "-") val = -1;
+                        else val = parseFloat(coeffStr);
+                        
+                        const idx = parseInt(match[2]) - 1;
+                        row[idx] = val;
+                    }
+                    // Reset regex for next row
+                    termRegex.lastIndex = 0; 
+                    A_val.push(row);
+                }
+
+                const payload = { 
+                    "c_T": c_T_val, "A": A_val, "b_T": b_T_val,
+                    "is_minimize": isMinimize, "pivot_rule": "bland" 
+                };
+
+                await solveProblem(payload, button, buttonText, c_T_val);
+            } catch (error) {
+                alert('Parsing Error: ' + error.message);
                 buttonText.textContent = 'Solve Problem';
                 button.disabled = false;
             }
