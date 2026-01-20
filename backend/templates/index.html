@@ -662,8 +662,7 @@ rule: max_coeff"></textarea>
             const container = document.getElementById('results');
             container.innerHTML = '<h2>Solution Iterations</h2>';
 
-            // --- 1. PREPARE THE INITIAL TABLEAU DATA ---
-            // We parse the raw strings from original_c into R and M components
+            const numVars = original_c.length;
             const initial_r_R = original_c.map(val => val.includes('M') ? 0 : parseFloat(val) || 0);
             const initial_r_M = original_c.map(val => {
                 if (!val.includes('M')) return 0;
@@ -672,10 +671,7 @@ rule: max_coeff"></textarea>
                 return parseFloat(val.replace('M', '')) || 0;
             });
 
-            // Use Step 0 as the template for A, b, and basis
             const step0 = steps[0];
-            
-            // Create a "Synthetic" Initial Step
             const initialStep = {
                 label: "Initial Tableau (Pre-reduction)",
                 basis: step0.basis,
@@ -685,45 +681,61 @@ rule: max_coeff"></textarea>
                 r_M: initial_r_M,
                 neg_obj_R: 0,
                 neg_obj_M: 0,
-                next_pivot: [-1, -1] // No pivot marked yet
+                next_pivot: [-1, -1] 
             };
 
-            // --- 2. COMBINE AND RENDER ---
             const allSteps = [initialStep, ...steps];
 
             allSteps.forEach((step, index) => {
                 const stepDiv = document.createElement('div');
                 stepDiv.className = 'step-card';
                 
-                // Define title: "Initial" for the first one, "Step 0, 1, 2..." for the rest
                 const title = index === 0 ? step.label : `Step ${index - 1}`;
+                const [pRow, pCol] = step.next_pivot;
+                
+                // Identify variable roles for decorations
+                const leavingVarIdx = pRow !== -1 ? step.basis[pRow] : -1;
+                const stayingBasisIdxs = step.basis.filter((_, i) => i !== pRow);
 
-                const numVars = original_c.length;
+                // Calculate current BFS values for display
                 const xValues = Array(numVars).fill(0);
-                step.basis.forEach((varIndex, rowIndex) => {
-                    if (varIndex < numVars) xValues[varIndex] = step.b[rowIndex];
+                step.basis.forEach((varIdx, rowIdx) => {
+                    if (varIdx < numVars) xValues[varIdx] = step.b[rowIdx];
                 });
 
                 let tableHtml = `<table>`;
                 
-                // BFS Row
+                // --- 1. Variable Header Row with Decorations ---
                 tableHtml += `<tr class="header-row">
-                                <td style="font-weight:bold;">x values:</td>
+                    <td style="font-weight:bold;">Variable</td>
+                    ${Array.from({length: numVars}, (_, j) => {
+                        let decorator = "";
+                        if (j === pCol) decorator = "\u0302";        // ̂  (Hat - Entering)
+                        else if (j === leavingVarIdx) decorator = "\u030C"; // ̌  (Caron/Upside Down Hat - Leaving)
+                        else if (stayingBasisIdxs.includes(j)) decorator = "\u0304"; // ̄  (Bar - Basis)
+                        
+                        return `<td style="font-size: 1.2em;">x${decorator}<sub>${j+1}</sub></td>`;
+                    }).join('')}
+                </tr>`;
+
+                // --- 2. BFS Values Row ---
+                tableHtml += `<tr>
+                                <td style="font-weight:bold; background: #f1f1f1;">x values:</td>
                                 ${xValues.map(val => `<td>${smartFormat(val)}</td>`).join('')}
                             </tr>`;
 
-                // Objective Row (formatRC handles the M strings)
+                // --- 3. Objective Row ---
                 tableHtml += `<tr class="obj-row">
                                 <td>${formatRC(step.neg_obj_R, step.neg_obj_M)}</td>
                                 ${step.r_R.map((r, i) => `<td>${formatRC(r, step.r_M[i])}</td>`).join('')}
                             </tr>`;
 
-                // Matrix Rows
+                // --- 4. Constraint Matrix ---
                 step.A.forEach((row, i) => {
                     tableHtml += `<tr>
                                     <td class="rhs-column">${smartFormat(step.b[i])}</td>
                                     ${row.map((val, j) => {
-                                        const isPivot = (step.next_pivot[0] === i && step.next_pivot[1] === j);
+                                        const isPivot = (pRow === i && pCol === j);
                                         return `<td>
                                             ${smartFormat(val)}
                                             ${isPivot ? '<span class="pivot-marker">★</span>' : ''}
@@ -731,9 +743,24 @@ rule: max_coeff"></textarea>
                                     }).join('')}
                                 </tr>`;
                 });
-
                 tableHtml += `</table>`;
-                stepDiv.innerHTML = `<h3>${title}</h3>` + tableHtml;
+
+                // --- 5. Analysis Block ---
+                let analysisHtml = `<div class="step-analysis" style="margin-top: 15px; padding: 12px; background: rgba(111, 26, 143, 0.05); border-radius: 8px; border-left: 4px solid #6f1a8f;">`;
+                if (pRow !== -1 && pCol !== -1) {
+                    analysisHtml += `
+                        <p><strong>Pivot Operation:</strong></p>
+                        <ul style="list-style: none; padding-left: 5px; margin-top: 5px; font-size: 0.95em;">
+                            <li><strong>Entering (x̂):</strong> x<sub>${pCol + 1}</sub> (Reduced cost indicates improvement)</li>
+                            <li><strong>Leaving (x̌):</strong> x<sub>${leavingVarIdx + 1}</sub> (Reached zero first in Minimum Ratio Test)</li>
+                            <li><strong>Basis (x̄):</strong> Variables that remain in the basic set.</li>
+                        </ul>`;
+                } else {
+                    analysisHtml += `<p style="color: #27ae60; font-weight: bold;">${index === 0 ? 'Tableau Initialized.' : '✅ Optimal Solution Found.'}</p>`;
+                }
+                analysisHtml += `</div>`;
+
+                stepDiv.innerHTML = `<h3>${title}</h3>` + tableHtml + analysisHtml;
                 container.appendChild(stepDiv);
             });
         }
