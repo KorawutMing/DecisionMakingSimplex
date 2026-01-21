@@ -38,7 +38,6 @@ Before you begin, ensure you have the following installed:
 #### 1️⃣ Clone the Repository
 ```bash
 git clone https://github.com/KorawutMing/DecisionMakingSimplex.git
-cd decision-making-simplex-solver
 ```
 
 #### 2️⃣ Create Virtual Environment
