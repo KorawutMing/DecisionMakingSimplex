@@ -3,7 +3,9 @@ from flask_cors import CORS  # Added for browser security
 import numpy as np
 from solver.tableau import SimplexTableau
 
-app = Flask(__name__)
+app = Flask(__name__, 
+            static_folder='../static', 
+            template_folder='../templates')
 CORS(app) # Enable CORS for all routes
 
 @app.route('/')
