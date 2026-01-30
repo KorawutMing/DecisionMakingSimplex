@@ -95,32 +95,42 @@ http://127.0.0.1:5000
 ## 📂 Project Structure
 
 ```
-decision-making-simplex-solver/
+DECISIONMAKINGSIMPLEX/
+├── 📁 backend/                # Server-side logic
+│   ├── 📁 solver/             # Core Simplex mathematical engine
+│   │   ├── models.py          # Data models for LP problems
+│   │   └── tableau.py         # Simplex tableau transformation logic
+│   ├── 📁 utils/              # Logic helpers and utilities
+│   │   └── helpers.py         # General utility functions
+│   └── 🐍 app.py              # Flask entry point & API routes
 │
-├── 📁 backend/                  # Core logic and API
-│   ├── 🐍 app.py               # Main Flask entry point & routes
-│   ├── 📁 solver/              # SimplexTableau mathematical engine
-│   ├── 📁 templates/           # Frontend UI (index.html)
-│   └── 📁 utils/               # Helper functions & data structures
+├── 📁 prototype/              # Research & Development
+│   └── 📓 test.ipynb          # Jupyter notebook for logic testing
 │
-├── 📁 prototype/               # Early development & logic testing
-├── 📄 samples.txt              # Example inputs for testing
-├── 📄 README.md                # You are here!
-└── 📄 requirements.txt         # Python dependencies
+├── 📁 static/                 # Frontend assets
+│   ├── 📁 css/                # Stylesheets (styles.css)
+│   └── 📁 js/                 # JavaScript functionality
+│
+├── 📁 templates/              # HTML UI
+│   ├── index.html             # Main application interface
+│   └── index_old.html         # Deprecated/Backup UI
+│
+├── 📄 .gitignore              # Files to be ignored by Git
+├── 📄 README.md               # Project documentation
+├── 📄 samples.txt             # Example inputs for testing
+└── 📄 samples_legacy.txt      # Older test cases
 ```
 
 ### 🔍 Key Components
 
 | Component | Purpose |
-|-----------|---------|
-| **app.py** | Flask server handling routes and CORS configuration |
-| **solver/** | Implements the Simplex Algorithm tableau logic |
-| **templates/** | Contains the HTML frontend interface |
-| **utils/** | Utility functions and data structure definitions |
-| **prototype/** | Development workspace for testing new features |
-| **samples.txt** | Pre-defined example problems for quick testing |
-
----
+| :--- | :--- |
+| **backend/solver/** | The "brain" of the app; handles the math behind the Simplex algorithm. |
+| **backend/app.py** | Bridges the frontend and backend via Flask routes. |
+| **static/** | Houses all client-side assets like CSS styling and JS logic. |
+| **templates/** | Contains the HTML template rendered by Flask. |
+| **prototype/** | A sandbox for experimenting with new solvers or scripts before deployment. |
+| **samples.txt** | A collection of linear programming problems for quick copy-pasting. |
 
 ## 💡 Usage
 
