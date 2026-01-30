@@ -1,3 +1,4 @@
 venv
 backend/solver/__pycache__
 backend/utils/__pycache__
+backend/templates/index_old.html
