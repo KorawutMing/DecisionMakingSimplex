@@ -457,8 +457,11 @@ End"></textarea>
 
         <div id="results"></div>
     </div>
-
+    
     <script>
+        let simplexPath = [];   // array of x-vectors
+        let numDecisionVars = 0;
+
         // Function to generate the grid that matches your renderSteps logic
         function generateInputGrid() {
             const n = parseInt(document.getElementById('num_vars').value) || 0;
@@ -762,8 +765,24 @@ End"></textarea>
         }
 
         function renderSteps(steps, original_c) {
+            simplexPath = [];
+            numDecisionVars = original_c.length;
+
             const container = document.getElementById('results');
-            container.innerHTML = '<h2>Solution Iterations</h2>';
+            container.innerHTML = `
+                <h2>Solution Iterations</h2>
+
+                <div id="path-controls" style="margin: 20px 0; display: none;">
+                    <label><strong>Select variables to visualize:</strong></label>
+                    <select id="x-select-1"></select>
+                    <select id="x-select-2"></select>
+                    <button onclick="drawSimplexPath()">Show Simplex Path</button>
+                </div>
+
+                <canvas id="simplex-canvas" width="600" height="600"
+                    style="border:1px solid #ccc; margin-top:20px; display:none;"></canvas>
+            `;
+
 
             const numVars = original_c.length;
             const initial_r_R = original_c.map(val => val.includes('M') ? 0 : parseFloat(val) || 0);
@@ -805,6 +824,7 @@ End"></textarea>
                 step.basis.forEach((varIdx, rowIdx) => {
                     if (varIdx < numVars) xValues[varIdx] = step.b[rowIdx];
                 });
+                simplexPath.push([...xValues]);
 
                 let tableHtml = `<table>`;
                 
@@ -866,7 +886,100 @@ End"></textarea>
                 stepDiv.innerHTML = `<h3>${title}</h3>` + tableHtml + analysisHtml;
                 container.appendChild(stepDiv);
             });
+
+            const controls = document.getElementById('path-controls');
+            const s1 = document.getElementById('x-select-1');
+            const s2 = document.getElementById('x-select-2');
+
+            s1.innerHTML = '';
+            s2.innerHTML = '';
+
+            for (let i = 0; i < numDecisionVars; i++) {
+                s1.innerHTML += `<option value="${i}">x${i+1}</option>`;
+                s2.innerHTML += `<option value="${i}">x${i+1}</option>`;
+            }
+
+            controls.style.display = 'block';
+
         }
+
+        function drawSimplexPath() {
+            const i = parseInt(document.getElementById('x-select-1').value);
+            const j = parseInt(document.getElementById('x-select-2').value);
+
+            if (i === j) {
+                alert("Please select two different variables.");
+                return;
+            }
+
+            const canvas = document.getElementById('simplex-canvas');
+            canvas.style.display = 'block';
+            const ctx = canvas.getContext('2d');
+
+            // Path
+            ctx.strokeStyle = '#6f1a8f';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Extract projected points
+            const points = simplexPath.slice(1).map(x => ({
+                x: x[i],
+                y: x[j]
+            }));
+
+            // Scaling
+            const margin = 50;
+            const maxX = Math.max(...points.map(p => p.x)) || 1;
+            const maxY = Math.max(...points.map(p => p.y)) || 1;
+
+            const scaleX = (canvas.width - 2 * margin) / maxX;
+            const scaleY = (canvas.height - 2 * margin) / maxY;
+
+            const map = p => ({
+                x: margin + p.x * scaleX,
+                y: canvas.height - (margin + p.y * scaleY)
+            });
+
+            // Axes
+            ctx.strokeStyle = '#333';
+            ctx.beginPath();
+            ctx.moveTo(margin, margin);
+            ctx.lineTo(margin, canvas.height - margin);
+            ctx.lineTo(canvas.width - margin, canvas.height - margin);
+            ctx.stroke();
+
+            // Font settings
+            ctx.font = '24px Arial';
+            ctx.fillStyle = '#000';
+
+            ctx.fillText(`x${i+1}`, canvas.width - margin + 10, canvas.height - margin);
+            ctx.fillText(`x${j+1}`, margin - 20, margin - 10);
+
+            // Path
+            ctx.strokeStyle = '#6f1a8f';
+            ctx.lineWidth = 5;
+            ctx.beginPath();
+
+            points.forEach((p, idx) => {
+                const mp = map(p);
+                if (idx === 0) ctx.moveTo(mp.x, mp.y);
+                else ctx.lineTo(mp.x, mp.y);
+            });
+            ctx.stroke();
+
+            // Points + arrows
+            points.forEach((p, idx) => {
+                const mp = map(p);
+                ctx.fillStyle = idx === points.length - 1 ? '#27ae60' : '#e74c3c';
+                ctx.beginPath();
+                ctx.arc(mp.x, mp.y, 5, 0, 2 * Math.PI);
+                ctx.fill();
+                ctx.fillText(idx, mp.x + 6, mp.y - 6);
+            });
+        }
+
     </script>
 </body>
 </html>
