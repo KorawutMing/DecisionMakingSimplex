@@ -2,7 +2,9 @@
  * API Module - Handles all backend communication
  */
 
-const API_BASE_URL = 'http://127.0.0.1:5000';
+const API_BASE_URL = (typeof window !== 'undefined' && window.location.origin.startsWith('http')) 
+    ? window.location.origin 
+    : 'http://127.0.0.1:5000';
 
 export const api = {
     /**
@@ -17,14 +19,10 @@ export const api = {
             body: JSON.stringify(payload)
         });
 
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
+        const data = await response.json().catch(() => ({}));
 
-        const data = await response.json();
-        
-        if (data.error) {
-            throw new Error(data.error);
+        if (!response.ok || data.error) {
+            throw new Error(data.error || `HTTP error! status: ${response.status}`);
         }
 
         return data;

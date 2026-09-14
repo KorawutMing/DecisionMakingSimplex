@@ -144,6 +144,54 @@ input[type="radio"] {
     height: 18px;
 }
 
+/* Cell inputs in Tableau Grid */
+.cell-input {
+    width: 65px !important;
+    padding: 8px 4px !important;
+    text-align: center !important;
+    border: 1.5px solid #dcdde1 !important;
+    border-radius: 6px !important;
+    background: #ffffff !important;
+    font-size: 0.95em !important;
+    font-family: 'Consolas', 'Monaco', monospace !important;
+    font-weight: 500 !important;
+    transition: all 0.15s ease !important;
+    display: inline-block !important;
+}
+
+.cell-input:focus {
+    border-color: #6f1a8f !important;
+    background: #fdf6ff !important;
+    box-shadow: 0 0 0 3px rgba(111, 26, 143, 0.2) !important;
+    outline: none !important;
+}
+
+.cell-input.grid-b {
+    background: #e8f4f8 !important;
+    font-weight: bold !important;
+    border-color: #bcdbe8 !important;
+}
+
+.cell-input.grid-c {
+    background: #fff8e1 !important;
+    font-weight: bold !important;
+    border-color: #ffe082 !important;
+}
+
+/* Hide spin buttons everywhere */
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+input[type=number] {
+    -moz-appearance: textfield;
+}
+
+.btn-clear:hover {
+    background: #5a6268 !important;
+}
+
 select {
     width: 100%;
     padding: 12px 16px;

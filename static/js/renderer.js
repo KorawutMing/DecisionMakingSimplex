@@ -49,14 +49,16 @@ export class StepsRenderer {
         const numVars = originalC.length;
         
         const initial_r_R = originalC.map(val => 
-            val.includes('M') ? 0 : parseFloat(val) || 0
+            String(val).includes('M') ? 0 : parseFloat(val) || 0
         );
         
         const initial_r_M = originalC.map(val => {
-            if (!val.includes('M')) return 0;
-            if (val === 'M') return 1;
-            if (val === '-M') return -1;
-            return parseFloat(val.replace('M', '')) || 0;
+            const str = String(val).trim().replace(/\s+/g, '');
+            if (!str.includes('M')) return 0;
+            const mPart = str.replace('M', '').replace('+', '');
+            if (mPart === '') return 1;
+            if (mPart === '-') return -1;
+            return parseFloat(mPart) || 0;
         });
 
         return {

@@ -24,22 +24,34 @@
         </div>
         
         <div class="input-mode-toggle">
-            <button class="mode-btn active" onclick="switchMode('standard')">Standard Input</button>
-            <button class="mode-btn" onclick="switchMode('string')">Standardized String</button>
+            <button class="mode-btn active" onclick="switchMode('standard')">Standard Table Input</button>
             <button class="mode-btn" onclick="switchMode('copt')">COPT LP Style</button>
         </div>
 
         <div id="standard-input" class="input-section">
             <h3>Tableau Grid Configuration</h3>
             
-            <div class="options-row" style="margin-bottom: 20px; background: rgba(111, 26, 143, 0.05); padding: 15px; border-radius: 10px;">
-                <div class="input-group">
-                    <label>Number of Variables (n):</label>
-                    <input type="number" id="num_vars" value="6" min="1" style="width: 80px; padding: 8px; border-radius: 5px; border: 1px solid #ddd;">
+            <div class="options-row" style="margin-bottom: 20px; background: rgba(111, 26, 143, 0.05); padding: 15px; border-radius: 10px; align-items: flex-end;">
+                <div class="input-group" style="margin-bottom: 0;">
+                    <label>Load Example Problem:</label>
+                    <select id="standard_example_select" onchange="loadStandardExample(this.value)">
+                        <option value="">-- Custom / Select Preset --</option>
+                        <option value="default">Default Big-M (n=6, m=2)</option>
+                        <option value="beaver">Beaver Creek Pottery (Max, n=4, m=2)</option>
+                        <option value="wyndor">Wyndor Glass Co. (Max, n=5, m=3)</option>
+                        <option value="hw13">HW13_1 Beale's Cycling (Min, n=7, m=3)</option>
+                    </select>
                 </div>
-                <div class="input-group">
-                    <label>Number of Constraints (m):</label>
-                    <input type="number" id="num_cons" value="2" min="1" style="width: 80px; padding: 8px; border-radius: 5px; border: 1px solid #ddd;">
+                <div style="display: flex; gap: 12px; align-items: flex-end; flex-wrap: wrap;">
+                    <div class="input-group" style="margin-bottom: 0;">
+                        <label>Variables (n):</label>
+                        <input type="number" id="num_vars" value="6" min="1" style="width: 75px; padding: 10px; border-radius: 6px; border: 1.5px solid #dcdde1; text-align: center; font-weight: bold;">
+                    </div>
+                    <div class="input-group" style="margin-bottom: 0;">
+                        <label>Constraints (m):</label>
+                        <input type="number" id="num_cons" value="2" min="1" style="width: 75px; padding: 10px; border-radius: 6px; border: 1.5px solid #dcdde1; text-align: center; font-weight: bold;">
+                    </div>
+                    <button type="button" class="btn-clear" onclick="clearGrid()" style="padding: 10px 16px; font-size: 0.95em; background: #718093; border-radius: 6px; color: white; border: none; cursor: pointer; font-weight: 600;">Clear</button>
                 </div>
             </div>
 
@@ -72,34 +84,21 @@
             </button>
         </div>
 
-        <!-- Standardized String Input Mode -->
-        <div id="tableau-input" class="input-section hidden">
-            <h3>Problem Configuration (Standardized String)</h3>
-            <div class="input-group">
-                <label>Problem Specification (multi-line format):</label>
-                <textarea id="problem_string" rows="8" placeholder="c: 2, 4, 0, 0, M, M
-A: 1, 2, -1, 0, 1, 0; -1, 2, 0, -1, 0, 1
-b: 4, 6
-obj: min
-rule: max_coeff"></textarea>
-                <div class="hint-text">
-                    Format: Each line starts with a key followed by colon.<br>
-                    <strong>c:</strong> objective coefficients (use M for Big-M)<br>
-                    <strong>A:</strong> constraint matrix (rows separated by semicolons)<br>
-                    <strong>b:</strong> right-hand side values<br>
-                    <strong>obj:</strong> min or max<br>
-                    <strong>rule:</strong> bland or max_coeff
-                </div>
-            </div>
-            <button onclick="solveStandardizedString()">
-                <span id="buttonText2">Solve Problem</span>
-            </button>
-        </div>
-
         <!-- COPT LP Style Input Mode -->
         <div id="copt-input" class="input-section hidden">
             <h3>COPT LP Format (Uses Bland's Rule)</h3>
             <div class="input-group">
+                <label>Load Sample Problem:</label>
+                <select id="copt_example_select" onchange="loadCOPTExample(this.value)" style="margin-bottom: 15px;">
+                    <option value="">-- Select a Sample Problem --</option>
+                    <option value="beaver">Beaver Creek Pottery (Maximize)</option>
+                    <option value="wyndor">Wyndor Glass Co. (Maximize)</option>
+                    <option value="hw6_1">HW6_1 (Big-M Minimize)</option>
+                    <option value="hw6_2">HW6_2 (Big-M Minimize)</option>
+                    <option value="hw7_1">HW7_1 (Minimize)</option>
+                    <option value="hw8_2">HW8_2 (Big-M Maximize)</option>
+                    <option value="hw13_1">HW13_1 Beale's Cycling (Minimize)</option>
+                </select>
                 <label>LP Problem in COPT Format:</label>
                 <textarea id="copt_string" rows="12" placeholder="Minimize
  OBJ: -0.75 x1 + 20 x2 - 0.5 x3 + 6 x4 + 0 x5 + 0 x6 + 0 x7

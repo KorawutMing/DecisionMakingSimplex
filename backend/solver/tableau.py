@@ -98,7 +98,7 @@ class SimplexTableau:
         # Check for degeneracy: if multiple rows have the same minimum ratio
         # or if the minimum ratio is 0.
         if min_ratio < 1e-9:
-            print(f"⚠️ Degenerate step detected (Ratio = 0 at pivot column {pivot_col})")
+            print(f"[Warning] Degenerate step detected (Ratio = 0 at pivot column {pivot_col})")
 
         pivot_row = np.argmin(ratios)
         

@@ -125,6 +125,7 @@ export const parsers = {
             let coeff = match[1].replace(/\s+/g, '') || "+1";
             if (coeff === "+") coeff = "1";
             if (coeff === "-") coeff = "-1";
+            if (coeff.startsWith("+")) coeff = coeff.substring(1);
             const idx = parseInt(match[2]) - 1;
             c_T[idx] = coeff;
         }
