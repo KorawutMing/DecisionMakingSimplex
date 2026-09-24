@@ -1,11 +1,21 @@
+import sys
+import os
 from flask import Flask, request, jsonify, render_template
 from flask_cors import CORS  # Added for browser security
 import numpy as np
+
+# Ensure backend directory is in sys.path so solver/utils can be imported anywhere
+backend_dir = os.path.dirname(os.path.abspath(__file__))
+if backend_dir not in sys.path:
+    sys.path.insert(0, backend_dir)
+
 from solver.tableau import SimplexTableau
 
+root_dir = os.path.abspath(os.path.join(backend_dir, '..'))
+
 app = Flask(__name__, 
-            static_folder='../static', 
-            template_folder='../templates')
+            static_folder=os.path.join(root_dir, 'static'), 
+            template_folder=os.path.join(root_dir, 'templates'))
 CORS(app) # Enable CORS for all routes
 
 @app.route('/')
